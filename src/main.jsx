@@ -5,6 +5,8 @@ import App from "./App.jsx";
 // import { AuthProvider } from "./context/AuthContext.jsx";
 import "./index.css";
 import AuthProvider from "./context/AuthContext.jsx";
+import { RouterProvider } from "react-router";
+import { router } from "./routes/AppRoutes.jsx";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
  <React.StrictMode>
