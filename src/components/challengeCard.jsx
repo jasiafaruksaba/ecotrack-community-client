@@ -1,36 +1,17 @@
-// import { Link } from "react-router-dom";
-import axios from "axios";
-import { useState } from "react";
+import React from "react";
 import { Link } from "react-router";
 
-const ChallengeCard = ({ challenge }) => {
-  const [joined, setJoined] = useState(false);
-
-  const handleJoin = async () => {
-    try {
-      const token = localStorage.getItem("firebaseToken");
-      await axios.post(`/api/challenges/join/${challenge._id}`, {}, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setJoined(true);
-    } catch (err) {
-      console.error(err.response?.data?.message || err.message);
-    }
-  };
-
+export default function ChallengeCard({ challenge }) {
   return (
-    <div className="bg-white shadow rounded overflow-hidden hover:shadow-md transition p-4">
-      <img src={challenge.imageUrl} alt={challenge.title} className="w-full h-40 object-cover"/>
-      <h3 className="font-semibold text-lg mt-2">{challenge.title}</h3>
-      <p className="text-gray-600">{challenge.category}</p>
-      <p className="mt-1 text-gray-700">{challenge.description.substring(0, 60)}...</p>
-      <div className="mt-2 flex gap-2">
-        <Link to={`/challenges/${challenge._id}`} className="text-green-600 hover:underline">View</Link>
-        {!joined && <button onClick={handleJoin} className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700">Join</button>}
-        {joined && <span className="text-gray-600">Joined ✅</span>}
+    <div className="bg-white rounded-lg shadow p-4 flex flex-col">
+      <img src={challenge.imageUrl || "/placeholder.jpg"} alt={challenge.title} className="h-40 w-full object-cover rounded" />
+      <h3 className="mt-3 font-semibold">{challenge.title}</h3>
+      <p className="text-sm text-gray-600">{challenge.category} — {challenge.duration} days</p>
+      <p className="text-sm mt-2 truncate">{challenge.description}</p>
+      <div className="mt-auto flex items-center justify-between pt-3">
+        <div className="text-xs text-gray-500">{challenge.participants} participants</div>
+        <Link to={`/challenges/${challenge._id}`} className="text-sm btn">View</Link>
       </div>
     </div>
   );
-};
-
-export default ChallengeCard;
+}

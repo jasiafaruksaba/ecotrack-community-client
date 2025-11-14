@@ -1,51 +1,52 @@
-import { createContext, useContext, useEffect, useState } from "react";
-import { auth } from "../Firebase/Firebase.config";
-import { 
-  onAuthStateChanged,
-  signInWithEmailAndPassword,
-  signInWithPopup,
-  GoogleAuthProvider,
-  createUserWithEmailAndPassword,
-  signOut
-} from "firebase/auth";
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from '../Firebase/Firebase.config'; // <-- Fixed: named import
+import { successToast, errorToast } from '../utils/toast';
 
-// Create Context
 const AuthContext = createContext();
 
-// Custom hook
 export const useAuth = () => useContext(AuthContext);
 
-// Auth Provider
-export const AuthProvider = ({ children }) => {
+const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-
-  const login = (email, password) => signInWithEmailAndPassword(auth, email, password);
-  const register = (email, password) => createUserWithEmailAndPassword(auth, email, password);
-  const logout = () => signOut(auth);
-
-  const googleLogin = () => {
-    const provider = new GoogleAuthProvider();
-    return signInWithPopup(auth, provider);
-  };
+  const [token, setToken] = useState(null);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      if (currentUser) {
+        setUser(currentUser);
+        try {
+          const idToken = await currentUser.getIdToken();
+          setToken(idToken);
+        } catch (error) {
+          console.error("Error getting token:", error);
+          errorToast("Failed to retrieve user session token.");
+          setToken(null);
+        }
+      } else {
+        setUser(null);
+        setToken(null);
+      }
       setLoading(false);
     });
+
     return () => unsubscribe();
   }, []);
 
-  const value = { user, loading, login, register, logout, googleLogin };
+  const authInfo = {
+    user,
+    loading,
+    token,
+    successToast,
+    errorToast,
+  };
 
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider value={authInfo}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-// এই দুটো export থাকবে
-export { AuthContext }; // ProtectedRoute এর জন্য
-// export default AuthProvider; // যদি default চাস
+export default AuthProvider;

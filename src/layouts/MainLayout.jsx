@@ -1,16 +1,20 @@
-// import { Outlet } from "react-router-dom";
-import { Outlet } from "react-router";
-import Navbar from "../components/Navbar";
-import Sidebar from "../components/Sidebar";
+// client/src/layouts/MainLayout.jsx
+import React from 'react';
+import { Outlet } from 'react-router';
+import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
+import { Toaster } from 'react-hot-toast'; // Required for toast messages
 
 const MainLayout = () => {
   return (
-    <div className="min-h-screen flex flex-col bg-[#F8FAF9] text-[#1A1C1B]">
+    <div className="flex flex-col min-h-screen">
       <Navbar />
-       <Sidebar />
-      <main className="flex-1 max-w-7xl mx-auto w-full px-4 py-6">
+      <main className="flex-grow">
         <Outlet />
       </main>
+      <Footer />
+      {/* Toast Notification Container */}
+      <Toaster position="top-right" reverseOrder={false} />
     </div>
   );
 };
