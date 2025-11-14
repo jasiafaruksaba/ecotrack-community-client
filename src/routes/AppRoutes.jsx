@@ -1,15 +1,13 @@
-// import { createBrowserRouter } from "react-router-dom";
-// import Home from "../pages/Home/Home";
-// import Login from "../pages/Auth/Login";
-// import Register from "../pages/Auth/Register";
-import MainLayout from "../layouts/MainLayout";
+// src/routes/AppRoutes.jsx
 import { createBrowserRouter } from "react-router";
+import MainLayout from "../layouts/MainLayout";
 import Home from "../pages/Home";
 import Login from "../pages/Login";
 import Register from "../pages/Register";
 import PrivateRoute from "./PrivateRoute";
-import AddChallenge from "../pages/AddChallenge"
-import MyActivities from "../pages/MyActivities"
+import AddChallenge from "../pages/AddChallenge";
+import MyActivities from "../pages/MyActivities";
+
 export const router = createBrowserRouter([
   {
     path: "/",
@@ -19,13 +17,21 @@ export const router = createBrowserRouter([
       { path: "/login", element: <Login /> },
       { path: "/register", element: <Register /> },
       {
-  path: "/challenges/add",
-  element: <PrivateRoute><AddChallenge /></PrivateRoute>
-},
-{
-  path: "/my-activities",
-  element: <PrivateRoute><MyActivities /></PrivateRoute>
-}
+        path: "/challenges/add",
+        element: (
+          <PrivateRoute>
+            <AddChallenge />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "/my-activities",
+        element: (
+          <PrivateRoute>
+            <MyActivities />
+          </PrivateRoute>
+        ),
+      },
     ],
   },
 ]);

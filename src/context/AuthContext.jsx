@@ -1,6 +1,7 @@
+// src/context/AuthContext.jsx
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from '../Firebase/Firebase.config'; // <-- Fixed: named import
+import { auth } from '../Firebase/Firebase.config';
 import { successToast, errorToast } from '../utils/toast';
 
 const AuthContext = createContext();
@@ -20,9 +21,8 @@ const AuthProvider = ({ children }) => {
           const idToken = await currentUser.getIdToken();
           setToken(idToken);
         } catch (error) {
-          console.error("Error getting token:", error);
-          errorToast("Failed to retrieve user session token.");
-          setToken(null);
+          console.error("Token error:", error);
+          errorToast("Session error.");
         }
       } else {
         setUser(null);
@@ -34,13 +34,7 @@ const AuthProvider = ({ children }) => {
     return () => unsubscribe();
   }, []);
 
-  const authInfo = {
-    user,
-    loading,
-    token,
-    successToast,
-    errorToast,
-  };
+  const authInfo = { user, loading, token, successToast, errorToast };
 
   return (
     <AuthContext.Provider value={authInfo}>
@@ -49,4 +43,4 @@ const AuthProvider = ({ children }) => {
   );
 };
 
-export default AuthProvider;
+export default AuthProvider; // default export
