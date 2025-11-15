@@ -2,8 +2,10 @@
 import React from 'react';
 import { Link } from 'react-router';
 
+
 const PagesError = () => {
   return (
+   
     <div className="flex flex-col items-center justify-center min-h-[calc(100vh-160px)] bg-gray-50 text-center p-6">
       <h1 className="text-9xl font-extrabold text-green-600">404</h1>
       <h2 className="text-4xl font-bold text-gray-800 mt-4 mb-3">Page Not Found</h2>
@@ -18,6 +20,7 @@ const PagesError = () => {
         Go Back to Home
       </Link>
     </div>
+   
   );
 };
 

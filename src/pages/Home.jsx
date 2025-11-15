@@ -1,128 +1,210 @@
-import React from 'react';
-import useFetch from '../hooks/useFetch'; // You need to create this hook
+// src/pages/Home.jsx
+import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router'; // <-- যোগ করো
+import axios from 'axios';
 import ChallengeCard from '../components/challengeCard';
 import TipCard from '../components/TipCard';
 import EventCard from '../components/EventCard';
-import SkeletonLoader from '../components/SkeletonLoader'; // You need to create this component
+import SkeletonLoader from '../components/SkeletonLoader';
+import { toast } from 'react-toastify';
 
-const Home = () => {
-    const { data: challenges, loading: loadingChallenges } = useFetch('/api/challenges?limit=4');
-    const { data: tips, loading: loadingTips } = useFetch('/api/tips');
-    const { data: events, loading: loadingEvents } = useFetch('/api/events');
-    const { data: stats, loading: loadingStats } = useFetch('/api/stats'); // Assuming a stats endpoint
+const API = import.meta.env.VITE_SERVER_BASE_URL || 'http://localhost:3000/api';
 
-    // --- Static Sections ---
-    const renderWhyGoGreen = () => (
-        <section className="py-12 bg-gray-50">
-            <h2 className="text-3xl font-bold text-center mb-6 text-green-700">Why Go Green? 🌿</h2>
-            <div className="max-w-4xl mx-auto px-4">
-                <ul className="list-disc list-inside space-y-2 text-gray-700">
-                    <li>**Reduce your Carbon Footprint:** Direct impact on climate change mitigation.</li>
-                    <li>**Save Money:** Lower energy and water bills by adopting sustainable habits.</li>
-                    <li>**Support Local Ecosystems:** Reduce pollution and waste in your community.</li>
-                    <li>**Inspire Others:** Community-driven progress fosters collective action.</li>
-                    <li>**Improve Health:** Cleaner air and less exposure to toxins.</li>
-                </ul>
+export default function Home() {
+  const [loading, setLoading] = useState(true);
+  const [challenges, setChallenges] = useState([]);
+  const [tips, setTips] = useState([]);
+  const [events, setEvents] = useState([]);
+  const [stats, setStats] = useState({ totalCO2: 0, totalPlastic: 0 });
+
+  useEffect(() => {
+    setLoading(true);
+    Promise.all([
+      axios.get(`${API}/challenges`), // সব চ্যালেঞ্জ নিয়ে আসবে
+      axios.get(`${API}/tips?limit=5`),
+      axios.get(`${API}/events?limit=4`),
+    ])
+      .then(([c, t, e]) => {
+        const allChallenges = c.data || [];
+        // শুধু প্রথম ৬টা চ্যালেঞ্জ দেখাবে
+        setChallenges(allChallenges.slice(0, 6));
+
+        setTips(t.data || []);
+        setEvents(e.data || []);
+
+        // CO2 & Plastic stats (যদি ফিল্ড থাকে)
+        const totalCO2 = allChallenges.reduce((s, i) => s + (i.co2Saved || 0), 0);
+        const totalPlastic = allChallenges.reduce((s, i) => s + (i.plasticSaved || 0), 0);
+        setStats({ totalCO2, totalPlastic });
+      })
+      .catch((err) => {
+        console.error(err);
+        toast.error('Could not load home data');
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
+  return (
+    <div>
+      {/* Hero Section */}
+      <section className="hero" aria-label="hero">
+        <div className="left">
+          <h1 style={{ margin: 0 }}>Join hands for a greener tomorrow</h1>
+         <div className="flex flex-col gap-6 max-w-md">
+  <p className="text-muted-foreground text-lg leading-relaxed">
+    Find local challenges, track your impact, and share tips.
+  </p>
+
+  {/* Explore Challenges Button */}
+  <Link
+    to="/challenges"
+    className="inline-flex items-center justify-center rounded-md bg-primary px-6 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:bg-primary/90 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+  >
+    Explore Challenges
+  </Link>
+</div>
+</div>
+
+        {/* Community Stats */}
+        <div style={{ width: 260, textAlign: 'center' }}>
+          <div
+            style={{
+              background: '#fff',
+              padding: 12,
+              borderRadius: 10,
+              boxShadow: 'var(--shadow)',
+            }}
+          >
+            <h4 style={{ margin: '8px 0' }}>Community Stats</h4>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div>
+                <strong>{stats.totalCO2} kg</strong> CO₂ saved
+              </div>
+              <div>
+                <strong>{stats.totalPlastic} kg</strong> Plastic reduced
+              </div>
             </div>
-        </section>
-    );
-
-    const renderHowItWorks = () => (
-        <section className="py-12">
-            <h2 className="text-3xl font-bold text-center mb-10 text-green-700">How EcoTrack Works</h2>
-            <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto px-4 text-center">
-                <div className="p-6 border rounded-lg shadow-lg">
-                    <h3 className="text-xl font-semibold mb-3">1. Join a Challenge</h3>
-                    <p>Select from various sustainability challenges like "Plastic-Free July" or "30 Days of Cycling."</p>
-                </div>
-                <div className="p-6 border rounded-lg shadow-lg">
-                    <h3 className="text-xl font-semibold mb-3">2. Track Progress</h3>
-                    <p>Log your daily activities and see your environmental impact (e.g., CO₂ saved) grow!</p>
-                </div>
-                <div className="p-6 border rounded-lg shadow-lg">
-                    <h3 className="text-xl font-semibold mb-3">3. Share Tips</h3>
-                    <p>Post practical eco-tips and get upvotes from the community to become a green leader.</p>
-                </div>
-            </div>
-        </section>
-    );
-
-    return (
-        <div className="min-h-screen">
-            {/* 1. Hero Banner & Live Statistics */}
-            <section className="bg-green-100 p-8">
-                <div className="max-w-7xl mx-auto">
-                    {/* Hero Banner/Carousel (requires implementation) */}
-                    <h1 className="text-4xl font-extrabold text-green-800 mb-6">Track Your Green Impact!</h1>
-                    <p className="text-lg mb-8">Join the EcoTrack community to make measurable, collective progress toward a sustainable future.</p>
-
-                    {/* Live Statistics */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                        {loadingStats ? <SkeletonLoader count={4} type="stat" /> : (
-                            <>
-                                <div className="p-4 bg-white rounded shadow">
-                                    <p className="text-3xl font-bold text-green-600">{stats?.co2Saved || '12,500'}</p>
-                                    <p className="text-sm text-gray-500">Total CO₂ Saved (kg)</p>
-                                </div>
-                                {/* ... other stats ... */}
-                            </>
-                        )}
-                    </div>
-                </div>
-            </section>
-
-            {/* 2. Active Challenges */}
-            <section className="py-12 max-w-7xl mx-auto px-4">
-                <h2 className="text-3xl font-bold mb-8 text-green-700">Active Challenges</h2>
-                <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {loadingChallenges
-                        ? <SkeletonLoader count={4} type="card" />
-                        : challenges.map(challenge => (
-                            <ChallengeCard key={challenge._id} challenge={challenge} />
-                        ))
-                    }
-                </div>
-            </section>
-
-            <hr className="my-8"/>
-
-            {/* Static: Why Go Green? */}
-            {renderWhyGoGreen()}
-
-            <hr className="my-8"/>
-
-            {/* 3. Recent Tips & 4. Upcoming Events */}
-            <section className="py-12 max-w-7xl mx-auto px-4 grid lg:grid-cols-2 gap-12">
-                <div>
-                    <h2 className="text-3xl font-bold mb-6 text-green-700">Recent Tips</h2>
-                    <div className="space-y-4">
-                        {loadingTips
-                            ? <SkeletonLoader count={5} type="list" />
-                            : tips.map(tip => (
-                                <TipCard key={tip._id} tip={tip} />
-                            ))
-                        }
-                    </div>
-                </div>
-                <div>
-                    <h2 className="text-3xl font-bold mb-6 text-green-700">Upcoming Events</h2>
-                    <div className="space-y-4">
-                        {loadingEvents
-                            ? <SkeletonLoader count={4} type="list" />
-                            : events.map(event => (
-                                <EventCard key={event._id} event={event} />
-                            ))
-                        }
-                    </div>
-                </div>
-            </section>
-
-            <hr className="my-8"/>
-
-            {/* Static: How It Works */}
-            {renderHowItWorks()}
+          </div>
         </div>
-    );
-};
+      </section>
 
-export default Home;
+      {/* Active Challenges Section */}
+      <section style={{ marginTop: 32 }}>
+        <h2>Active Challenges</h2>
+        {loading ? (
+          <SkeletonLoader count={6} />
+        ) : (
+          <div className="grid">
+            {challenges.map((c) => (
+              <ChallengeCard key={c._id} challenge={c} />
+            ))}
+          </div>
+        )}
+
+        {/* All Challenges Button */}
+        <div style={{ textAlign: 'center', marginTop: 24 }}>
+          <Link
+            to="/challenges"
+            style={{
+              display: 'inline-block',
+              padding: '12px 32px',
+              background: 'transparent',
+              color: 'var(--primary)',
+              border: '2px solid var(--primary)',
+              borderRadius: 8,
+              fontWeight: 'bold',
+              textDecoration: 'none',
+              fontSize: '1.1rem',
+              transition: 'all 0.3s',
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.background = 'var(--primary)';
+              e.target.style.color = '#fff';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.background = 'transparent';
+              e.target.style.color = 'var(--primary)';
+            }}
+          >
+            All Challenges
+          </Link>
+        </div>
+      </section>
+
+      {/* Recent Tips */}
+      <section style={{ marginTop: 32 }}>
+        <h2>Recent Tips</h2>
+        {loading ? (
+          <SkeletonLoader count={3} />
+        ) : (
+          <div style={{ display: 'grid', gap: 12 }}>
+            {tips.map((t) => (
+              <TipCard key={t._id} tip={t} />
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* Upcoming Events */}
+      <section style={{ marginTop: 32 }}>
+        <h2>Upcoming Events</h2>
+        {loading ? (
+          <SkeletonLoader count={4} />
+        ) : (
+          <div className="grid">
+            {events.map((e) => (
+              <EventCard key={e._id} event={e} />
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* Why Go Green */}
+      <section
+        style={{
+          marginTop: 40,
+          background: '#fff',
+          padding: 20,
+          borderRadius: 12,
+          boxShadow: 'var(--shadow)',
+        }}
+      >
+        <h3 className='text-2xl, text-blue-600'>Why Go Green?</h3>
+       <ul className="space-y-4">
+  <li className="flex items-start gap-3">
+    <div className="flex-shrink-0 w-10 h-10 bg-green-100 rounded-full flex items-center justify-center shadow-sm">
+      <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+      </svg>
+    </div>
+    <span className="text-gray-700 text-base leading-relaxed">
+      Reduce waste and save money
+    </span>
+  </li>
+
+  <li className="flex items-start gap-3">
+    <div className="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center shadow-sm">
+      <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+      </svg>
+    </div>
+    <span className="text-gray-700 text-base leading-relaxed">
+      Improve air and water quality locally
+    </span>
+  </li>
+
+  <li className="flex items-start gap-3">
+    <div className="flex-shrink-0 w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center shadow-sm">
+      <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+      </svg>
+    </div>
+    <span className="text-gray-700 text-base leading-relaxed">
+      Join community-driven measurable impact
+    </span>
+  </li>
+</ul>
+      </section>
+    </div>
+  );
+}

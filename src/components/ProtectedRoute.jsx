@@ -1,18 +1,11 @@
-// // import { useContext } from "react";
-// // import { AuthContext } from "../context/AuthContext";
-// // import { Navigate, useLocation } from "react-router-dom";
+import React from 'react';
+import { Navigate, useLocation } from 'react-router';
+import { useAuth } from '../context/AuthContext';
 
-// import { useContext } from "react";
-// import { AuthContext } from "../context/AuthContext";
-// import { Navigate, useLocation } from "react-router";
-
-// export default function ProtectedRoute({ children }) {
-//   const { user, loading } = useContext(AuthContext);
-//   const location = useLocation();
-
-//   if(loading) return <div className="text-center py-20">Loading...</div>;
-//   if(!user) return <Navigate to="/login" state={{ from: location }} replace />;
-
-//   return children;
-// }
-// // 
+export default function ProtectedRoute({ children }){
+  const { user, loading } = useAuth();
+  const loc = useLocation();
+  if(loading) return <div className="center">Loading...</div>;
+  if(!user) return <Navigate to="/login" state={{ from: loc }} replace />;
+  return children;
+}
